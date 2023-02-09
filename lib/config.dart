@@ -1,10 +1,10 @@
-class Config {
+class AppConfig {
   static const String appName = "Starz App";
-  static const String WABAID = "103238399344243";
+  static const String WABAID = "103040862681014";
   static const String apiKey =
-      "EAAKDfllPMn0BAKS1AvvyZAZCyO6HZANoPIuF1FBPOtjxMHsWRzuimK5j0Hhkgmv1mxYlXpLgRd02z8g8Xzjw02ZCs7IPrsi43zOxJAMNHCc5aXmoZAPOQfBokxaINw60e8m9J9JnRZAmXIAgvBrql0gZAWy9yu4nBxebOUgRl7qEK8JiUzQmYXzZBIOv2ds74oPKu0DstIdiwQZDZD";
-  static const String phoneNoID = "117886851195519/";
-  static const String version = "v6.0/";
+      "EAAMEyX45PoMBAMfDz0AZBN0KKTd5FQ7lCEELTlxZBhVmh3eNPUQhOMeN8cuKiqCOGdg0lrZCkeYFLm9pxipoBnNouY20kHPD24Bi3ZAW8MZAjqHMFgrPMWi6sq9firX2ZARwqOBgu9bAW07zapm1Mtss4uEeBRocXbCgDahsdefi29LJTzPtYGZAaA0xinhpOs8rB3xvCa1XhZCJOEnN1N9KZCYdNHt61KcQZD";
+  static const String phoneNoID = "114643694839965/";
+  static const String version = "v15.0/";
   static const String apiURL = "https://graph.facebook.com/";
 
   static const registerAPI = "/register";

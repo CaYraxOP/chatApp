@@ -1,14 +1,11 @@
 import 'dart:convert';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:multiple_result/multiple_result.dart';
 import 'package:starz/models/phone_number_model.dart';
 
 import '../config.dart';
 import '../models/retrieve_media_model.dart';
-
-final apiService = Provider((ref) => APIService());
 
 class APIService {
   static var client = http.Client();
@@ -17,10 +14,12 @@ class APIService {
   static Future<Result<bool, String>> registerUser(String pin) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.registerAPI);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.registerAPI);
     try {
       var response = await client.post(
         url,
@@ -33,10 +32,8 @@ class APIService {
         ),
       );
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body)['error']['message']);
       }
     } catch (e) {
@@ -48,20 +45,20 @@ class APIService {
   static Future<Result<bool, String>> deregisterUser() async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.deregister);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.deregister);
     try {
       var response = await client.post(
         url,
         headers: requestHeaders,
       );
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body)['error']['message']);
       }
     } catch (e) {
@@ -74,22 +71,20 @@ class APIService {
       getBusinessProfile() async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(Config.apiURL +
-        Config.version +
-        Config.phoneNoID +
-        Config.getBusinessIdProfile);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.getBusinessIdProfile);
     try {
       var response = await client.get(
         url,
         headers: requestHeaders,
       );
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body));
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -110,12 +105,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(Config.apiURL +
-        Config.version +
-        Config.phoneNoID +
-        Config.updateWhatsappBusinessProfile);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.updateWhatsappBusinessProfile);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -131,10 +126,8 @@ class APIService {
             "profile_picture_handle": IMAGE_HANDLE_ID,
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body));
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -147,23 +140,21 @@ class APIService {
       String imageId) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(Config.apiURL +
-        Config.version +
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
         imageId +
         "?phone_number_id=" +
-        Config.phoneNoID);
+        AppConfig.phoneNoID);
     try {
       var response = await client.get(
         url,
         headers: requestHeaders,
       );
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(retrieveMediaModelFromJson(response.body));
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -175,23 +166,21 @@ class APIService {
   static Future<Result<bool, String>> deleteMedia(String mediaId) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(Config.apiURL +
-        Config.version +
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
         mediaId +
         "?phone_number_id=" +
-        Config.phoneNoID);
+        AppConfig.phoneNoID);
     try {
       var response = await client.delete(
         url,
         headers: requestHeaders,
       );
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -203,19 +192,17 @@ class APIService {
   static Future<Result<bool, String>> downMedia(String mediaId) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(Config.apiURL + Config.version + mediaId);
+    var url = Uri.parse(AppConfig.apiURL + AppConfig.version + mediaId);
     try {
       var response = await client.get(
         url,
         headers: requestHeaders,
       );
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -230,10 +217,12 @@ class APIService {
       String body, String recipientPhoneNumber) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -245,10 +234,8 @@ class APIService {
             "text": {"preview_url": false, "body": body}
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -261,10 +248,12 @@ class APIService {
       String recipientPhoneNumber, String messageIdOfPrevMsg) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -277,10 +266,8 @@ class APIService {
             "text": {"preview_url": false, "body": body}
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -295,10 +282,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -312,10 +301,8 @@ class APIService {
             }
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -331,10 +318,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -349,10 +338,8 @@ class APIService {
             }
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -367,10 +354,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -384,10 +373,8 @@ class APIService {
             }
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -403,10 +390,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -419,10 +408,8 @@ class APIService {
             "image": {"id": imageId}
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -437,10 +424,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -454,10 +443,8 @@ class APIService {
             }
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -473,10 +460,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -493,10 +482,8 @@ class APIService {
             }
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -511,10 +498,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -526,10 +515,8 @@ class APIService {
             "audio": {"id": audioId}
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -545,10 +532,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -561,10 +550,8 @@ class APIService {
             "audio": {"id": audioId}
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return Success(jsonDecode(response.body)['messages'][0]['id']);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -578,10 +565,12 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.sendMessage);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.sendMessage);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
@@ -591,10 +580,8 @@ class APIService {
             "message_id": incomingMessageId,
           }));
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -606,20 +593,20 @@ class APIService {
   Future<Result<PhoneNumberModel, String>> getPhoneNumber() async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.WABAID + Config.phoneNumbers);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.WABAID +
+        AppConfig.phoneNumbers);
     try {
       var response = await client.get(
         url,
         headers: requestHeaders,
       );
       if (response.statusCode == 200) {
-        print("Successful" + response.body);
         return Success(PhoneNumberModel.fromJson(jsonDecode(response.body)));
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -631,19 +618,19 @@ class APIService {
   static Future<Result<bool, String>> requestVerificationCode() async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.requestCode);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.requestCode);
     try {
       var response = await client.post(url,
           headers: requestHeaders,
           body: jsonEncode({"code_method": "SMS", "locale": "en_US"}));
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {
@@ -657,18 +644,18 @@ class APIService {
   ) async {
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': "Bearer ${Config.apiKey}"
+      'Authorization': "Bearer ${AppConfig.apiKey}"
     };
-    var url = Uri.parse(
-        Config.apiURL + Config.version + Config.phoneNoID + Config.verifyCode);
+    var url = Uri.parse(AppConfig.apiURL +
+        AppConfig.version +
+        AppConfig.phoneNoID +
+        AppConfig.verifyCode);
     try {
       var response = await client.post(url,
           headers: requestHeaders, body: jsonEncode({"code": code}));
       if (response.statusCode == 200) {
-        print(response.body);
         return const Success(true);
       } else {
-        print(response.body);
         return Error(jsonDecode(response.body));
       }
     } catch (e) {

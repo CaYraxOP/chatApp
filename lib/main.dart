@@ -1,12 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'screens/register_screen.dart';
+import 'package:starz/firebase_options.dart';
+import 'package:get/get.dart';
+import 'package:starz/screens/chat/chat_page.dart';
+import 'package:starz/screens/home/home_screen.dart';
+import 'screens/register/register_screen.dart';
 
 Widget _defaultHome = const RegisterScreen();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MyApp()));
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -14,20 +18,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
+      initialRoute: HomeScreen.id,
       debugShowCheckedModeBanner: false,
       title: 'Starz App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       //home: const RegisterPage(),
-      routes: <String, WidgetBuilder>{
-        '/': (context) => _defaultHome,
-        // '/register': (BuildContext context) => const RegisterPage(),
-        // '/login': (BuildContext context) => const LoginPage(),
-        // '/home': (BuildContext context) => const DashboardPage(),
-        // '/products': (BuildContext context) => const ProductsPage(),
-      },
+      getPages: [
+        GetPage(name: HomeScreen.id, page: () => HomeScreen()),
+        GetPage(name: RegisterScreen.id, page: () => RegisterScreen()),
+        GetPage(name: ChatPage.id, page: () => ChatPage())
+      ],
     );
   }
 }
