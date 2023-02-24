@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:starz/api/whatsapp_api.dart';
+import 'package:starz/config.dart';
 
 class ConctactsController extends GetxController {
   RxList<Contact> contacts = <Contact>[].obs;
   RxList<Contact> filteredContacts = <Contact>[].obs;
   TextEditingController searchQuery = TextEditingController();
+  WhatsAppApi whatsapp = WhatsAppApi();
 
   @override
   void onInit() {
     super.onInit();
     getInitialContacts();
+    whatsapp.setup(
+        accessToken: AppConfig.apiKey,
+        fromNumberId: int.parse(AppConfig.phoneNoID));
   }
 
   @override
