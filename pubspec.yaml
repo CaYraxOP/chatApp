@@ -49,6 +49,12 @@ dependencies:
   get: ^4.6.5
   get_storage: ^2.0.3
   intl: ^0.18.0
+  flutter_facebook_auth: ^5.0.7
+  file_picker: ^5.2.5
+  image_picker: ^0.8.6+1
+  cached_network_image: ^3.2.3
+  flutter_contacts: ^1.1.6
+  sizer: ^2.0.15
 
 dev_dependencies:
   flutter_test:

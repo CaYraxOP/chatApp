@@ -8,13 +8,13 @@ class Message {
   String id;
   Timestamp timestamp;
   String type;
-  String text;
+  Map<String, dynamic> value;
   Message({
     required this.from,
     required this.id,
     required this.timestamp,
     required this.type,
-    required this.text,
+    required this.value,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,7 +23,7 @@ class Message {
       'id': id,
       'timestamp': timestamp.millisecondsSinceEpoch,
       'type': type,
-      'text': {"body": text},
+      '$type': value,
     };
   }
 
@@ -34,9 +34,7 @@ class Message {
       id: map['id'] as String,
       timestamp: map['timestamp'],
       type: map['type'] as String,
-      text: (map['text'] == null
-          ? "message type not supported"
-          : map['text']['body']) as String,
+      value: map["${map['type']}"] ?? {},
     );
   }
 
@@ -47,7 +45,7 @@ class Message {
 
   @override
   String toString() {
-    return 'Message(from: $from, id: $id, timestamp: $timestamp, type: $type, text: $text)';
+    return 'Message(from: $from, id: $id, timestamp: $timestamp, type: $type, text: $value)';
   }
 
   @override
@@ -58,7 +56,7 @@ class Message {
         other.id == id &&
         other.timestamp == timestamp &&
         other.type == type &&
-        other.text == text;
+        other.value == value;
   }
 
   @override
@@ -67,6 +65,6 @@ class Message {
         id.hashCode ^
         timestamp.hashCode ^
         type.hashCode ^
-        text.hashCode;
+        value.hashCode;
   }
 }

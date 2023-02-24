@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:starz/config.dart';
+import 'package:starz/screens/phone_contacts/phoneContactspage.dart';
+import 'package:whatsapp/whatsapp.dart';
 import '../../../widgets/custom_card.dart';
 
 class ContactsPage extends StatelessWidget {
   ContactsPage({
     Key? key,
   }) : super(key: key) {
-    print(AppConfig.phoneNoID.replaceAll("/", "").toString());
-    snapshot = FirebaseFirestore.instance.collection("room").where("users",
-        arrayContainsAny: [
-          AppConfig.phoneNoID.replaceAll("/", "").toString()
-        ]).snapshots();
+    print(AppConfig.phoneNoID);
+    snapshot = FirebaseFirestore.instance
+        .collection("accounts")
+        .doc(AppConfig.WABAID)
+        .collection("discussion")
+        .snapshots();
   }
 
   late Stream<QuerySnapshot<Map<String, dynamic>>> snapshot;
@@ -23,7 +27,7 @@ class ContactsPage extends StatelessWidget {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            openDialog();
+            Get.toNamed(PhoneContactsPage.id);
           },
           child: const Icon(Icons.add),
         ),
@@ -39,12 +43,12 @@ class ContactsPage extends StatelessWidget {
                 }
                 List<Widget> widgets = [];
                 for (int i = 0; i < snapshot.data!.size; i++) {
-                  List<dynamic> users = snapshot.data!.docs[i].data()['users'];
-                  users.remove(AppConfig.phoneNoID.replaceAll("/", ""));
+                  String user = snapshot.data!.docs[i].data()['client'];
+                  // users.remove(AppConfig.phoneNoID);
 
                   widgets.add(CustomCard(
                     roomId: snapshot.data!.docs[i].id,
-                    toPhoneNumber: users.first,
+                    toPhoneNumber: user,
                   ));
                 }
 
@@ -57,43 +61,5 @@ class ContactsPage extends StatelessWidget {
             return CircularProgressIndicator();
           },
         ));
-  }
-
-  openDialog() {
-    Get.defaultDialog(
-      radius: 0,
-      content: Form(
-        // key: _formkey,
-        child: Column(
-          children: [
-            TextFormField(
-              keyboardType: TextInputType.phone,
-              onChanged: (value) {
-                // phone = value;
-                // print(phone);
-              },
-              decoration: InputDecoration(
-                  hintText: "+2547********",
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(),
-                  enabledBorder: OutlineInputBorder()),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                    onPressed: () {
-                      Fluttertoast.showToast(msg: "Phone Number required");
-                    },
-                    child: const Text("Send Message"))
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

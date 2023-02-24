@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyC2X3wwrifUxcdppx61HQ15n9MwFpdyWAE',
-    appId: '1:655518493333:android:0ffd42bd02caba16c7c99c',
+    appId: '1:655518493333:android:76b9524d749f79c1c7c99c',
     messagingSenderId: '655518493333',
     projectId: 'starzapp',
     storageBucket: 'starzapp.appspot.com',
@@ -59,12 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDdJO8P8F2hxZB6gsyw7wLRgjBV0ZcxV8o',
-    appId: '1:655518493333:ios:41153a7a5fbeac28c7c99c',
+    appId: '1:655518493333:ios:874ba423e0d01db5c7c99c',
     messagingSenderId: '655518493333',
     projectId: 'starzapp',
     storageBucket: 'starzapp.appspot.com',
-    iosClientId:
-        '655518493333-a67n72hmhrbvco8lpdb8v6acte4sa58o.apps.googleusercontent.com',
-    iosBundleId: 'com.example.starz',
+    iosClientId: '655518493333-8oonvkdbkob7uq844q5jl6gkr2b048fl.apps.googleusercontent.com',
+    iosBundleId: 'com.starzventures.starz',
   );
 }

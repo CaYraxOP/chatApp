@@ -1,4 +1,4 @@
-package com.example.starz
+package com.starzventures.starz
 
 import io.flutter.embedding.android.FlutterActivity
 

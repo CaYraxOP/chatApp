@@ -1,13 +1,17 @@
 import 'dart:io';
-
+import 'dart:typed_data';
+import 'package:http_parser/http_parser.dart';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/models/message.dart';
-import 'package:whatsapp/whatsapp.dart';
 
 import '../../widgets/own_message_card.dart';
 import '../../widgets/reply_card.dart';
@@ -20,13 +24,13 @@ class ChatPage extends StatefulWidget {
   }) : super(key: key) {
     roomId = Get.arguments['roomId'];
     phoneNumber = Get.arguments['to'];
-    whatsApp = WhatsApp();
+    whatsApp = WhatsAppApi();
     whatsApp.setup(
         accessToken: AppConfig.apiKey,
-        fromNumberId: int.tryParse(AppConfig.phoneNoID.replaceAll("/", "")));
+        fromNumberId: int.tryParse(AppConfig.phoneNoID));
   }
 
-  late WhatsApp whatsApp;
+  late WhatsAppApi whatsApp;
   static const id = "/chatPage";
   late String phoneNumber;
   late String roomId;
@@ -98,11 +102,13 @@ class _ChatPageState extends State<ChatPage> {
         .then((value) async {
       print(value);
       await FirebaseFirestore.instance
-          .collection("room")
-          .doc(widget.roomId)
+          .collection("accounts")
+          .doc(AppConfig.WABAID)
+          .collection("discussion")
+          .doc(widget.phoneNumber)
           .collection("messages")
           .add({
-        "from": AppConfig.phoneNoID.replaceAll("/", ""),
+        "from": AppConfig.phoneNoID,
         "id": value['messages'][0]['id'],
         "text": {"body": message},
         "type": "text",
@@ -186,8 +192,10 @@ class _ChatPageState extends State<ChatPage> {
                     // height: MediaQuery.of(context).size.height - 140,
                     child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                         stream: FirebaseFirestore.instance
-                            .collection("room")
-                            .doc(widget.roomId)
+                            .collection("accounts")
+                            .doc(AppConfig.WABAID)
+                            .collection("discussion")
+                            .doc(widget.phoneNumber)
                             .collection("messages")
                             .orderBy("timestamp")
                             .snapshots(),
@@ -213,10 +221,9 @@ class _ChatPageState extends State<ChatPage> {
                                   height: 70,
                                 );
                               }
-                              if (messages[index].from ==
-                                  AppConfig.phoneNoID.replaceAll("/", "")) {
+                              if (messages[index].from == AppConfig.phoneNoID) {
                                 return OwnMessageCard(
-                                    message: messages[index].text,
+                                    message: messages[index],
                                     time: DateFormat("HH:mm").format(
                                         DateTime.fromMillisecondsSinceEpoch(
                                             messages[index]
@@ -224,7 +231,7 @@ class _ChatPageState extends State<ChatPage> {
                                                 .millisecondsSinceEpoch)));
                               } else {
                                 return ReplyCard(
-                                    message: messages[index].text,
+                                    message: messages[index],
                                     time: DateFormat("HH:mm").format(
                                         DateTime.fromMillisecondsSinceEpoch(
                                             messages[index]
@@ -379,15 +386,122 @@ class _ChatPageState extends State<ChatPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   iconCreation(
-                      Icons.insert_drive_file, Colors.indigo, "Document"),
+                      Icons.insert_drive_file, Colors.indigo, "Document",
+                      onTap: () async {
+                    FilePickerResult? res = await FilePicker.platform.pickFiles(
+                        allowMultiple: false,
+                        type: FileType.custom,
+                        allowedExtensions: [
+                          'pdf',
+                          'doc',
+                          'docx',
+                          'xls',
+                          "xlms"
+                        ]);
+
+                    if (res == null) {
+                      return;
+                    }
+
+                    if (res.count > 0) {
+                      print(res.names);
+                      String filePath = res.files.first.path!;
+                      File doc = File(filePath);
+                      print(filePath);
+
+                      // var payload = await http.MultipartFile.fromPath(
+                      //     "file", filePath,
+                      //     contentType: MediaType.parse(
+                      //         "application/${res.files[0].extension}"));
+
+                      var id = (await widget.whatsApp.uploadMedia(
+                          mediaType: MediaType.parse(
+                              "application/${res.files[0].extension}"),
+                          mediaFile: doc,
+                          mediaName: res.files[0].name))['id'];
+
+                      var link = await widget.whatsApp.getMediaUrl(mediaId: id);
+                      print(link);
+
+                      var mesgRes = await widget.whatsApp.messagesMedia(
+                          mediaId: id,
+                          // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
+                          mediaType: "document",
+                          to: widget.phoneNumber);
+                      print(mesgRes);
+
+                      var messageObject = {
+                        "document": {
+                          "filename": res.files[0].name,
+                          "mime_type": "application/${res.files[0].extension}",
+                          "sha256": link['sha256'],
+                          "id": id
+                        },
+                        "type": "document",
+                        "from": AppConfig.phoneNoID,
+                        "id": "",
+                        "timestamp": DateTime.now()
+                      };
+
+                      await FirebaseFirestore.instance
+                          .collection("accounts")
+                          .doc(AppConfig.WABAID)
+                          .collection("discussion")
+                          .doc(widget.phoneNumber)
+                          .collection("messages")
+                          .add(messageObject);
+                    }
+                  }),
                   const SizedBox(
                     width: 40,
                   ),
-                  iconCreation(Icons.camera_alt, Colors.pink, "Camera"),
-                  const SizedBox(
-                    width: 40,
-                  ),
-                  iconCreation(Icons.insert_photo, Colors.purple, "Gallery"),
+                  iconCreation(Icons.insert_photo, Colors.purple, "Gallery",
+                      onTap: () async {
+                    PickedFile? file = await ImagePicker.platform
+                        .pickImage(source: ImageSource.gallery);
+
+                    if (file == null) return;
+
+                    File doc = File(file.path);
+
+                    String ext = file.path.split('.').last;
+
+                    var id = (await widget.whatsApp.uploadMedia(
+                        mediaType: MediaType.parse(
+                            "image/${ext == 'jpg' ? 'jpeg' : ext}"),
+                        mediaFile: doc,
+                        mediaName: file.path.split('/').last))['id'];
+
+                    var mesgRes = await widget.whatsApp.messagesMedia(
+                        mediaId: id,
+                        // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
+                        mediaType: "image",
+                        to: widget.phoneNumber);
+                    print(mesgRes);
+
+                    var link = await widget.whatsApp.getMediaUrl(mediaId: id);
+                    print(link);
+
+                    var messageObject = {
+                      "image": {
+                        "mime_type": "image/${ext == 'jpg' ? 'jpeg' : ext}",
+                        "sha256": link['sha256'],
+                        "id": id
+                      },
+                      "type": "image",
+                      "from": AppConfig.phoneNoID,
+                      "id": "",
+                      "timestamp": DateTime.now()
+                    };
+
+                    await FirebaseFirestore.instance
+                        .collection("accounts")
+                        .doc(AppConfig.WABAID)
+                        .collection("discussion")
+                        .doc(widget.phoneNumber)
+                        .collection("messages")
+                        .add(messageObject);
+                  }),
                 ],
               ),
               const SizedBox(
@@ -414,9 +528,10 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget iconCreation(IconData icon, Color color, String text) {
+  Widget iconCreation(IconData icon, Color color, String text,
+      {void Function()? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Column(
         children: [
           CircleAvatar(
