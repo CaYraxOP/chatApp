@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Message {
+  Map<String, dynamic> context;
   String from;
   String id;
   Timestamp timestamp;
   String type;
   Map<String, dynamic> value;
   Message({
+    required this.context,
     required this.from,
     required this.id,
     required this.timestamp,
@@ -27,9 +29,9 @@ class Message {
     };
   }
 
-  factory Message.fromMap(Map<String, dynamic> map) {
-    print(map['timestamp'].runtimeType);
+  factory Message.fromMap(Map<String, dynamic>? map) {
     return Message(
+      context: map!["context"] ?? {},
       from: map['from'] as String,
       id: map['id'] as String,
       timestamp: map['timestamp'],

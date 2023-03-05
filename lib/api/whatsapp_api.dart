@@ -214,7 +214,7 @@ class WhatsAppApi {
   /// [messageId] is the message id.
   /// [message] is the message to be sent.
   /// [previewUrl] is used to preview the URL in the chat window.
-  Future messagesReply({to, messageId, previewUrl, message}) async {
+  Future messagesReply({to, messageId, message, phoneNumber}) async {
     var url = 'https://graph.facebook.com/v15.0/$_fromNumberId/messages';
 
     Map data = {
@@ -223,7 +223,7 @@ class WhatsAppApi {
       "to": to,
       "context": {"message_id": messageId},
       "type": "text",
-      "text": {"preview_url": previewUrl, "body": message}
+      "text": {"body": message}
     };
 
     var body = json.encode(data);
@@ -432,6 +432,8 @@ class WhatsAppApi {
 
     var response = await request.send();
     final respStr = await response.stream.bytesToString();
+
+    print('response ========= $respStr');
     try {
       return json.decode(respStr);
     } catch (e) {

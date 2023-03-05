@@ -1,7 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,12 +9,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/models/message.dart';
-
+import 'package:starz/widgets/reply_message_card_reply.dart';
+import 'package:swipe_to/swipe_to.dart';
 import '../../widgets/own_message_card.dart';
 import '../../widgets/reply_card.dart';
-
 import '../../config.dart';
 
 class ChatPage extends StatefulWidget {
@@ -45,6 +45,10 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool sendButton = false;
+  final audioRecorder = FlutterSoundRecorder();
+  bool isAudioRecordedReady = false;
+  bool isRecording = false;
+  Message? swipedMessage;
 
   @override
   void initState() {
@@ -57,14 +61,28 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
+
+    initRecord();
+  }
+
+  Future initRecord() async {
+    final granted = await checkPermission();
+    if (!granted) {
+      throw 'Microphone permission not granted';
+    }
+
+    await audioRecorder.openRecorder();
+    isAudioRecordedReady = true;
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    audioRecorder.closeRecorder();
     super.dispose();
   }
+
   // void connect() {
   //   socket = IO.io("http://127.0.0.1:5001", <String, dynamic>{
   //     "transports": ["websocket"],
@@ -100,7 +118,7 @@ class _ChatPageState extends State<ChatPage> {
         .messagesText(
             message: _controller.text, to: int.parse(widget.phoneNumber))
         .then((value) async {
-      print(value);
+      print('+++ RESPONSE NORMAL $value');
       await FirebaseFirestore.instance
           .collection("accounts")
           .doc(AppConfig.WABAID)
@@ -115,6 +133,113 @@ class _ChatPageState extends State<ChatPage> {
         "timestamp": DateTime.now()
       });
     });
+  }
+
+  void sendTextReply(String message) async {
+    var response = await widget.whatsApp.messagesReply(
+        to: int.parse(widget.phoneNumber),
+        messageId: swipedMessage!.id,
+        message: message);
+    await FirebaseFirestore.instance
+        .collection("accounts")
+        .doc(AppConfig.WABAID)
+        .collection("discussion")
+        .doc(widget.phoneNumber)
+        .collection("messages")
+        .add({
+      "from": AppConfig.phoneNoID,
+      "id": response['messages'][0]['id'],
+      "text": {"body": message},
+      "type": "text",
+      "timestamp": DateTime.now(),
+      "context": {'from': swipedMessage!.from, 'id': swipedMessage!.id}
+    });
+    swipedMessage = null;
+  }
+
+  void sendMediaReply() {}
+
+  Future<bool> checkPermission() async {
+    if (!await Permission.microphone.isGranted) {
+      PermissionStatus status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future record() async {
+    if (!isAudioRecordedReady) return;
+    setState(() {
+      isRecording = true;
+    });
+    await audioRecorder.startRecorder(toFile: 'audio.aac');
+  }
+
+  Future stopRecording() async {
+    if (!isAudioRecordedReady) return;
+
+    setState(() {
+      isRecording = false;
+    });
+    final path = await audioRecorder.stopRecorder();
+    final audioFile = File(path!);
+
+    print('Recorded audio: $audioFile');
+
+    var id = (await widget.whatsApp.uploadMedia(
+        mediaType: MediaType.parse("audio/aac"),
+        mediaFile: audioFile,
+        mediaName: audioFile.path.split('/').last))['id'];
+
+    var link = await widget.whatsApp.getMediaUrl(mediaId: id);
+    print(link);
+
+    var mesgRes;
+    if (swipedMessage == null) {
+      mesgRes = await widget.whatsApp.messagesMedia(
+          mediaId: id,
+          // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
+          mediaType: "audio",
+          to: widget.phoneNumber);
+    } else {
+      mesgRes = await widget.whatsApp.messagesReplyMedia(
+          mediaId: id,
+          // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
+          mediaType: "audio",
+          messageId: swipedMessage!.id,
+          to: widget.phoneNumber);
+    }
+
+    var messageObject;
+    if (swipedMessage == null) {
+      messageObject = {
+        "audio": {"mime_type": "audio/aac", "sha256": link['sha256'], "id": id},
+        "type": "audio",
+        "from": AppConfig.phoneNoID,
+        "id": mesgRes['messages'][0]['id'],
+        "timestamp": DateTime.now()
+      };
+    } else {
+      messageObject = {
+        "audio": {"mime_type": "audio/aac", "sha256": link['sha256'], "id": id},
+        "type": "audio",
+        "from": AppConfig.phoneNoID,
+        "id": mesgRes['messages'][0]['id'],
+        "timestamp": DateTime.now(),
+        "context": {'from': swipedMessage!.from, 'id': swipedMessage!.id}
+      };
+    }
+
+    swipedMessage = null;
+    await FirebaseFirestore.instance
+        .collection("accounts")
+        .doc(AppConfig.WABAID)
+        .collection("discussion")
+        .doc(widget.phoneNumber)
+        .collection("messages")
+        .add(messageObject);
   }
 
   @override
@@ -222,21 +347,74 @@ class _ChatPageState extends State<ChatPage> {
                                 );
                               }
                               if (messages[index].from == AppConfig.phoneNoID) {
-                                return OwnMessageCard(
-                                    message: messages[index],
-                                    time: DateFormat("HH:mm").format(
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            messages[index]
-                                                .timestamp
-                                                .millisecondsSinceEpoch)));
+                                if (messages[index].context.isNotEmpty) {
+                                  return SwipeTo(
+                                    onLeftSwipe: () {
+                                      replyToMessage(messages[index]);
+                                      focusNode.requestFocus();
+                                    },
+                                    child: ReplyMessageCardReply(
+                                      message: messages[index],
+                                      time: DateFormat("HH:mm").format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              messages[index]
+                                                  .timestamp
+                                                  .millisecondsSinceEpoch)),
+                                      phoneNumber: widget.phoneNumber,
+                                      myReply: true,
+                                    ),
+                                  );
+                                } else {
+                                  print('+++ 2');
+                                  return SwipeTo(
+                                    onLeftSwipe: () {
+                                      replyToMessage(messages[index]);
+                                      focusNode.requestFocus();
+                                    },
+                                    child: OwnMessageCard(
+                                        message: messages[index],
+                                        time: DateFormat("HH:mm").format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                messages[index]
+                                                    .timestamp
+                                                    .millisecondsSinceEpoch))),
+                                  );
+                                }
                               } else {
-                                return ReplyCard(
-                                    message: messages[index],
-                                    time: DateFormat("HH:mm").format(
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            messages[index]
-                                                .timestamp
-                                                .millisecondsSinceEpoch)));
+                                print('+++ 3');
+                                if (messages[index].context.isNotEmpty) {
+                                  return SwipeTo(
+                                    onRightSwipe: () {
+                                      focusNode.requestFocus();
+                                      replyToMessage(messages[index]);
+                                    },
+                                    child: ReplyMessageCardReply(
+                                      message: messages[index],
+                                      time: DateFormat("HH:mm").format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              messages[index]
+                                                  .timestamp
+                                                  .millisecondsSinceEpoch)),
+                                      phoneNumber: widget.phoneNumber,
+                                      myReply: false,
+                                    ),
+                                  );
+                                } else {
+                                  print('+++ 4');
+                                  return SwipeTo(
+                                    onRightSwipe: () {
+                                      focusNode.requestFocus();
+                                      replyToMessage(messages[index]);
+                                    },
+                                    child: ReplyCard(
+                                        message: messages[index],
+                                        time: DateFormat("HH:mm").format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                messages[index]
+                                                    .timestamp
+                                                    .millisecondsSinceEpoch))),
+                                  );
+                                }
                               }
                             },
                           );
@@ -261,63 +439,73 @@ class _ChatPageState extends State<ChatPage> {
                                       shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(25)),
-                                      child: TextFormField(
-                                        controller: _controller,
-                                        focusNode: focusNode,
-                                        textAlignVertical:
-                                            TextAlignVertical.center,
-                                        keyboardType: TextInputType.multiline,
-                                        maxLines: 5,
-                                        minLines: 1,
-                                        onChanged: (val) {
-                                          if (val.isNotEmpty) {
-                                            setState(() {
-                                              sendButton = true;
-                                            });
-                                          } else {
-                                            setState(() {
-                                              sendButton = false;
-                                            });
-                                          }
-                                        },
-                                        decoration: InputDecoration(
-                                            border: InputBorder.none,
-                                            hintText: "Type a message",
-                                            prefixIcon: IconButton(
-                                                onPressed: () {
-                                                  focusNode.unfocus();
-                                                  focusNode.canRequestFocus =
-                                                      false;
-                                                  setState(() {
-                                                    show = !show;
-                                                  });
-                                                },
-                                                icon: const Icon(
-                                                    Icons.emoji_emotions)),
-                                            suffixIcon: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                IconButton(
+                                      child: Column(
+                                        children: [
+                                          if (swipedMessage != null)
+                                            buildReply(),
+                                          TextFormField(
+                                            controller: _controller,
+                                            focusNode: focusNode,
+                                            textAlignVertical:
+                                                TextAlignVertical.center,
+                                            keyboardType:
+                                                TextInputType.multiline,
+                                            maxLines: 5,
+                                            minLines: 1,
+                                            onChanged: (val) {
+                                              if (val.isNotEmpty) {
+                                                setState(() {
+                                                  sendButton = true;
+                                                });
+                                              } else {
+                                                setState(() {
+                                                  sendButton = false;
+                                                });
+                                              }
+                                            },
+                                            decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                hintText: "Type a message",
+                                                prefixIcon: IconButton(
                                                     onPressed: () {
-                                                      showModalBottomSheet(
-                                                          backgroundColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          context: context,
-                                                          builder: (builder) {
-                                                            return bottomSheet();
-                                                          });
+                                                      focusNode.unfocus();
+                                                      focusNode
+                                                              .canRequestFocus =
+                                                          false;
+                                                      setState(() {
+                                                        show = !show;
+                                                      });
                                                     },
                                                     icon: const Icon(
-                                                        Icons.attach_file)),
-                                                IconButton(
-                                                    onPressed: () {},
-                                                    icon: const Icon(
-                                                        Icons.camera_alt))
-                                              ],
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.all(5)),
+                                                        Icons.emoji_emotions)),
+                                                suffixIcon: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    IconButton(
+                                                        onPressed: () {
+                                                          showModalBottomSheet(
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              context: context,
+                                                              builder:
+                                                                  (builder) {
+                                                                return bottomSheet();
+                                                              });
+                                                        },
+                                                        icon: const Icon(
+                                                            Icons.attach_file)),
+                                                    IconButton(
+                                                        onPressed: () {},
+                                                        icon: const Icon(
+                                                            Icons.camera_alt))
+                                                  ],
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.all(5)),
+                                          ),
+                                        ],
                                       ),
                                     )),
                                 Padding(
@@ -327,10 +515,12 @@ class _ChatPageState extends State<ChatPage> {
                                     left: 2,
                                   ),
                                   child: CircleAvatar(
-                                    backgroundColor: const Color(0xff128c7e),
+                                    backgroundColor: isRecording
+                                        ? Color.fromARGB(255, 140, 18, 18)
+                                        : const Color(0xff128c7e),
                                     radius: 20,
-                                    child: IconButton(
-                                        onPressed: () {
+                                    child: GestureDetector(
+                                        onTap: () {
                                           if (sendButton) {
                                             _scrollController.animateTo(
                                                 _scrollController
@@ -338,18 +528,26 @@ class _ChatPageState extends State<ChatPage> {
                                                 duration: const Duration(
                                                     milliseconds: 300),
                                                 curve: Curves.easeOut);
-                                            sendMessage(
-                                              _controller.text,
-                                              widget.phoneNumber,
-                                            );
+                                            if (swipedMessage != null) {
+                                              sendTextReply(_controller.text);
+                                            } else {
+                                              sendMessage(
+                                                _controller.text,
+                                                widget.phoneNumber,
+                                              );
+                                            }
 
                                             _controller.clear();
                                             setState(() {
                                               sendButton = false;
                                             });
+                                          } else {
+                                            isRecording
+                                                ? stopRecording()
+                                                : record();
                                           }
                                         },
-                                        icon: Icon(
+                                        child: Icon(
                                           sendButton ? Icons.send : Icons.mic,
                                           color: Colors.white,
                                         )),
@@ -393,10 +591,6 @@ class _ChatPageState extends State<ChatPage> {
                         type: FileType.custom,
                         allowedExtensions: [
                           'pdf',
-                          'doc',
-                          'docx',
-                          'xls',
-                          "xlms"
                         ]);
 
                     if (res == null) {
@@ -407,7 +601,7 @@ class _ChatPageState extends State<ChatPage> {
                       print(res.names);
                       String filePath = res.files.first.path!;
                       File doc = File(filePath);
-                      print(filePath);
+                      print('filePath ==================== $filePath');
 
                       // var payload = await http.MultipartFile.fromPath(
                       //     "file", filePath,
@@ -421,15 +615,15 @@ class _ChatPageState extends State<ChatPage> {
                           mediaName: res.files[0].name))['id'];
 
                       var link = await widget.whatsApp.getMediaUrl(mediaId: id);
-                      print(link);
 
                       var mesgRes = await widget.whatsApp.messagesMedia(
                           mediaId: id,
                           // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
                           mediaType: "document",
                           to: widget.phoneNumber);
-                      print(mesgRes);
-
+                      print('mesgRes = $mesgRes');
+                      print('mesgRes id = $id');
+                      print('mesgRes link = $link');
                       var messageObject = {
                         "document": {
                           "filename": res.files[0].name,
@@ -439,7 +633,7 @@ class _ChatPageState extends State<ChatPage> {
                         },
                         "type": "document",
                         "from": AppConfig.phoneNoID,
-                        "id": "",
+                        "id": mesgRes['messages'][0]['id'],
                         "timestamp": DateTime.now()
                       };
 
@@ -455,53 +649,162 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(
                     width: 40,
                   ),
-                  iconCreation(Icons.insert_photo, Colors.purple, "Gallery",
-                      onTap: () async {
-                    PickedFile? file = await ImagePicker.platform
-                        .pickImage(source: ImageSource.gallery);
+                  iconCreation(
+                    Icons.insert_photo,
+                    Colors.purple,
+                    "Gallery",
+                    onTap: () async {
+                      PickedFile? file = await ImagePicker.platform
+                          .pickImage(source: ImageSource.gallery);
 
-                    if (file == null) return;
+                      if (file == null) return;
 
-                    File doc = File(file.path);
+                      File doc = File(file.path);
 
-                    String ext = file.path.split('.').last;
+                      String ext = file.path.split('.').last;
 
-                    var id = (await widget.whatsApp.uploadMedia(
-                        mediaType: MediaType.parse(
-                            "image/${ext == 'jpg' ? 'jpeg' : ext}"),
-                        mediaFile: doc,
-                        mediaName: file.path.split('/').last))['id'];
+                      var id = (await widget.whatsApp.uploadMedia(
+                          mediaType: MediaType.parse(
+                              "image/${ext == 'jpg' ? 'jpeg' : ext}"),
+                          mediaFile: doc,
+                          mediaName: file.path.split('/').last))['id'];
+                      var mesgRes;
+                      if (swipedMessage == null) {
+                        mesgRes = await widget.whatsApp.messagesMedia(
+                            mediaId: id,
+                            // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
+                            mediaType: "image",
+                            to: widget.phoneNumber);
+                      } else {
+                        mesgRes = await widget.whatsApp.messagesReplyMedia(
+                            mediaId: id,
+                            messageId: swipedMessage!.id,
+                            mediaType: "image",
+                            to: widget.phoneNumber);
+                      }
 
-                    var mesgRes = await widget.whatsApp.messagesMedia(
-                        mediaId: id,
-                        // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
-                        mediaType: "image",
-                        to: widget.phoneNumber);
-                    print(mesgRes);
+                      var link = await widget.whatsApp.getMediaUrl(mediaId: id);
 
-                    var link = await widget.whatsApp.getMediaUrl(mediaId: id);
-                    print(link);
+                      print('+++ MESSAGE RES $mesgRes');
 
-                    var messageObject = {
-                      "image": {
-                        "mime_type": "image/${ext == 'jpg' ? 'jpeg' : ext}",
-                        "sha256": link['sha256'],
-                        "id": id
-                      },
-                      "type": "image",
-                      "from": AppConfig.phoneNoID,
-                      "id": "",
-                      "timestamp": DateTime.now()
-                    };
+                      var messageObject;
+                      if (swipedMessage == null) {
+                        messageObject = {
+                          "image": {
+                            "mime_type": "image/${ext == 'jpg' ? 'jpeg' : ext}",
+                            "sha256": link['sha256'],
+                            "id": id
+                          },
+                          "type": "image",
+                          "from": AppConfig.phoneNoID,
+                          "id": mesgRes['messages'][0]['id'],
+                          "timestamp": DateTime.now(),
+                        };
+                      } else {
+                        messageObject = {
+                          "image": {
+                            "mime_type": "image/${ext == 'jpg' ? 'jpeg' : ext}",
+                            "sha256": link['sha256'],
+                            "id": id
+                          },
+                          "type": "image",
+                          "from": AppConfig.phoneNoID,
+                          "id": mesgRes['messages'][0]['id'],
+                          "timestamp": DateTime.now(),
+                          "context": {
+                            'from': swipedMessage!.from,
+                            'id': swipedMessage!.id
+                          }
+                        };
+                      }
 
-                    await FirebaseFirestore.instance
-                        .collection("accounts")
-                        .doc(AppConfig.WABAID)
-                        .collection("discussion")
-                        .doc(widget.phoneNumber)
-                        .collection("messages")
-                        .add(messageObject);
-                  }),
+                      var res = await FirebaseFirestore.instance
+                          .collection("accounts")
+                          .doc(AppConfig.WABAID)
+                          .collection("discussion")
+                          .doc(widget.phoneNumber)
+                          .collection("messages")
+                          .add(messageObject);
+                    },
+                  ),
+                  const SizedBox(
+                    width: 40,
+                  ),
+                  iconCreation(
+                    Icons.video_file,
+                    Colors.purple,
+                    "Gallery",
+                    onTap: () async {
+                      PickedFile? file = await ImagePicker.platform
+                          .pickVideo(source: ImageSource.gallery);
+
+                      if (file == null) return;
+
+                      File doc = File(file.path);
+
+                      String ext = file.path.split('.').last;
+
+                      var id = (await widget.whatsApp.uploadMedia(
+                          mediaType: MediaType.parse("video/$ext"),
+                          mediaFile: doc,
+                          mediaName: file.path.split('/').last))['id'];
+
+                      var mesgRes;
+                      if (swipedMessage == null) {
+                        mesgRes = await widget.whatsApp.messagesMedia(
+                            mediaId: id,
+                            // {AUDIO, CONTACTS, DOCUMENT, IMAGE, INTERACTIVE, LOCATION, REACTION, STICKER, TEMPLATE, TEXT, VIDEO}.toLowerCase()
+                            mediaType: "video",
+                            to: widget.phoneNumber);
+                      } else {
+                        mesgRes = await widget.whatsApp.messagesReplyMedia(
+                            mediaId: id,
+                            messageId: swipedMessage!.id,
+                            mediaType: "video",
+                            to: widget.phoneNumber);
+                      }
+
+                      var link = await widget.whatsApp.getMediaUrl(mediaId: id);
+                      var messageObject;
+                      if (swipedMessage == null) {
+                        messageObject = {
+                          "video": {
+                            "mime_type": "video/$ext",
+                            "sha256": link['sha256'],
+                            "id": id
+                          },
+                          "type": "video",
+                          "from": AppConfig.phoneNoID,
+                          "id": mesgRes['messages'][0]['id'],
+                          "timestamp": DateTime.now()
+                        };
+                      } else {
+                        messageObject = {
+                          "video": {
+                            "mime_type": "video/$ext",
+                            "sha256": link['sha256'],
+                            "id": id
+                          },
+                          "type": "video",
+                          "from": AppConfig.phoneNoID,
+                          "id": mesgRes['messages'][0]['id'],
+                          "timestamp": DateTime.now(),
+                          "context": {
+                            'from': swipedMessage!.from,
+                            'id': swipedMessage!.id
+                          }
+                        };
+                      }
+
+                      await FirebaseFirestore.instance
+                          .collection("accounts")
+                          .doc(AppConfig.WABAID)
+                          .collection("discussion")
+                          .doc(widget.phoneNumber)
+                          .collection("messages")
+                          .add(messageObject);
+                    },
+                  ),
                 ],
               ),
               const SizedBox(
@@ -552,6 +855,20 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  void replyToMessage(Message message) {
+    swipedMessage = message;
+  }
+
+  void cancelReply() {
+    setState(() {
+      swipedMessage = null;
+    });
+  }
+
+  Widget buildReply() {
+    return Container();
+  }
+
   Widget emojiSelect() {
     return SizedBox(
       height: 300,
@@ -568,10 +885,8 @@ class _ChatPageState extends State<ChatPage> {
         },
         config: Config(
           columns: 8,
-          emojiSizeMax: 28 *
-              (Platform.isIOS
-                  ? 1.30
-                  : 1.0), // Issue: https://github.com/flutter/flutter/issues/28894
+          emojiSizeMax: 28 * (Platform.isIOS ? 1.30 : 1.0),
+          // Issue: https://github.com/flutter/flutter/issues/28894
           verticalSpacing: 0,
           horizontalSpacing: 0,
           initCategory: Category.RECENT,
