@@ -27,7 +27,7 @@ class ContactsPage extends StatelessWidget {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Get.toNamed(PhoneContactsPage.id);
+            Get.toNamed(PhoneContactsPage.id,  arguments: {"fromChat": false, 'to': null, 'whatsAppApi': null});
           },
           child: const Icon(Icons.add),
         ),

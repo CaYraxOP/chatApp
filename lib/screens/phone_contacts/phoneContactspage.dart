@@ -1,13 +1,84 @@
+import 'dart:ffi';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:get/get.dart';
+import 'package:starz/api/api_service.dart';
 import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/controllers/conctacts_controller.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../config.dart';
+
 class PhoneContactsPage extends GetView<ConctactsController> {
-  const PhoneContactsPage({super.key});
+  PhoneContactsPage({super.key});
+
   static const id = "/phone_contacts";
+  bool fromChat = Get.arguments['fromChat'];
+  int? to = Get.arguments['to'];
+  WhatsAppApi? whatsApp = Get.arguments['whatsAppApi'];
+  String? swipedMessageId = Get.arguments['swipedMessageId'];
+
+  sendContact(message, fullName) async {
+    if (to != null) {
+      var value;
+      if (swipedMessageId == null) {
+        value = await whatsApp?.messagesContacts(
+            to: to, phoneNumber: message, fullName: fullName);
+      } else {
+        value = await whatsApp?.messagesContactsReply(
+            to: to,
+            phoneNumber: message,
+            fullName: fullName,
+            messageId: swipedMessageId);
+      }
+
+      Map<String, dynamic> firestoreObject = {};
+
+      if (swipedMessageId == null) {
+        firestoreObject = {
+          "from": AppConfig.phoneNoID,
+          "id": value['messages'][0]['id'],
+          "contacts": [
+            {
+              'name': {'first_name': fullName, 'formatted_name': fullName},
+              'phones': [
+                {'phone': message, 'type': 'Mobile'}
+              ],
+            }
+          ],
+          "type": "contacts",
+          "timestamp": DateTime.now()
+        };
+      } else {
+        firestoreObject = {
+          "from": AppConfig.phoneNoID,
+          "id": value['messages'][0]['id'],
+          "context": {'from': AppConfig.phoneNoID, "id": swipedMessageId},
+          "contacts": [
+            {
+              'name': {'first_name': fullName, 'formatted_name': fullName},
+              'phones': [
+                {'phone': message, 'type': 'Mobile'}
+              ],
+            }
+          ],
+          "type": "contacts",
+          "timestamp": DateTime.now()
+        };
+      }
+
+      await FirebaseFirestore.instance
+          .collection("accounts")
+          .doc(AppConfig.WABAID)
+          .collection("discussion")
+          .doc(to.toString())
+          .collection("messages")
+          .add(firestoreObject);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,9 +109,11 @@ class PhoneContactsPage extends GetView<ConctactsController> {
                           onTap: () async {
                             await Get.defaultDialog(
                               radius: 10,
-                              title: "Add contact?",
-                              middleText:
-                                  "Would you like to add the following number : ${currentContact.phones.first.number.removeAllWhitespace}",
+                              title:
+                                  fromChat ? "Send Contact?" : "Add contact?",
+                              middleText: fromChat
+                                  ? "Would you like to share the following number : ${currentContact.phones.first.number.removeAllWhitespace}"
+                                  : "Would you like to add the following number : ${currentContact.phones.first.number.removeAllWhitespace}",
                               confirm: ElevatedButton(
                                   onPressed: () async {
                                     int to = 0;
@@ -55,9 +128,15 @@ class PhoneContactsPage extends GetView<ConctactsController> {
                                           "91${currentContact.phones.first.number.removeAllWhitespace}");
                                     }
 
-                                    await controller.whatsapp.messagesTemplate(
-                                        templateName: "hello_world", to: to);
-
+                                    if (fromChat) {
+                                      sendContact('+$to',
+                                          "${currentContact.name.first} ${currentContact.name.last}");
+                                    } else {
+                                      await controller.whatsapp
+                                          .messagesTemplate(
+                                              templateName: "hello_world",
+                                              to: to);
+                                    }
                                     Get.showSnackbar(const GetSnackBar(
                                       messageText: Text("Message Sent"),
                                     ));
@@ -88,7 +167,7 @@ class PhoneContactsPage extends GetView<ConctactsController> {
                           child: const Divider(
                             thickness: 1,
                           ),
-                        )
+                        ),
                       ],
                     );
                   },

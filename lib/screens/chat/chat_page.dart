@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -10,13 +13,17 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:place_picker/entities/location_result.dart';
+import 'package:place_picker/place_picker.dart';
 import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/models/message.dart';
+import 'package:starz/services/location.dart';
 import 'package:starz/widgets/reply_message_card_reply.dart';
 import 'package:swipe_to/swipe_to.dart';
 import '../../widgets/own_message_card.dart';
 import '../../widgets/reply_card.dart';
 import '../../config.dart';
+import '../phone_contacts/phoneContactspage.dart';
 
 class ChatPage extends StatefulWidget {
   ChatPage({
@@ -154,10 +161,67 @@ class _ChatPageState extends State<ChatPage> {
       "timestamp": DateTime.now(),
       "context": {'from': swipedMessage!.from, 'id': swipedMessage!.id}
     });
-    swipedMessage = null;
+    setState(() {
+      swipedMessage = null;
+    });
   }
 
-  void sendMediaReply() {}
+  void sendLocationMessage(latitude, longitude) async {
+    var response;
+
+    if (swipedMessage == null) {
+      response = await widget.whatsApp.messagesLocation(
+          to: int.parse(widget.phoneNumber),
+          longitude: longitude,
+          latitude: latitude,
+          name: '',
+          address: '');
+    } else {
+      response = await widget.whatsApp.messagesLocationReply(
+          to: int.parse(widget.phoneNumber),
+          longitude: longitude,
+          latitude: latitude,
+          name: '',
+          address: '',
+          messageId: swipedMessage!.id);
+    }
+    if (swipedMessage == null) {
+      await FirebaseFirestore.instance
+          .collection("accounts")
+          .doc(AppConfig.WABAID)
+          .collection("discussion")
+          .doc(widget.phoneNumber)
+          .collection("messages")
+          .add({
+        "from": AppConfig.phoneNoID,
+        "id": response['messages'][0]['id'],
+        "location": {"longitude": longitude, 'latitude': latitude},
+        "type": "location",
+        "timestamp": DateTime.now(),
+      });
+      setState(() {
+        swipedMessage = null;
+      });
+    } else {
+      await FirebaseFirestore.instance
+          .collection("accounts")
+          .doc(AppConfig.WABAID)
+          .collection("discussion")
+          .doc(widget.phoneNumber)
+          .collection("messages")
+          .add({
+        "from": AppConfig.phoneNoID,
+        "id": response['messages'][0]['id'],
+        "context": {'from': widget.phoneNumber, 'id': swipedMessage!.id},
+        "location": {"longitude": longitude, 'latitude': latitude},
+        "type": "location",
+        "timestamp": DateTime.now(),
+      });
+      setState(() {
+        swipedMessage = null;
+      });
+    }
+  }
 
   Future<bool> checkPermission() async {
     if (!await Permission.microphone.isGranted) {
@@ -167,6 +231,40 @@ class _ChatPageState extends State<ChatPage> {
       }
     }
     return true;
+  }
+
+  Future checkLocationPermission() async {
+    var currentStatus = await Permission.location.status;
+    if (currentStatus.isGranted) {
+      print('LOCATION GRANTED');
+      Location location = Location();
+      await location.getCurrentLocation();
+      sendLocationMessage(location.latitude, location.longitude);
+      // showPlacePicker();
+    } else if (currentStatus.isDenied) {
+      print('LOCATION DENIED');
+      Map<Permission, PermissionStatus> status = await [
+        Permission.location,
+      ].request();
+      if (await Permission.location.isPermanentlyDenied) {
+        openAppSettings();
+      }
+      print('LOCATION $status');
+    }
+  }
+
+  void showPlacePicker() async {
+    try {
+      LocationResult? result = await Navigator.of(context).push(
+          MaterialPageRoute(
+              builder: (context) =>
+                  PlacePicker("AIzaSyDbNh4C7T3AQLBr9GGJgS0MvJ6DNw52KMg")));
+      print('THIS IS THE RESULT $result');
+    } catch (error) {
+      print('THIS IS THE RESULT ERROR $error');
+    }
+
+    // Handle the result in your way
   }
 
   Future record() async {
@@ -232,7 +330,6 @@ class _ChatPageState extends State<ChatPage> {
       };
     }
 
-    swipedMessage = null;
     await FirebaseFirestore.instance
         .collection("accounts")
         .doc(AppConfig.WABAID)
@@ -240,6 +337,9 @@ class _ChatPageState extends State<ChatPage> {
         .doc(widget.phoneNumber)
         .collection("messages")
         .add(messageObject);
+    setState(() {
+      swipedMessage = null;
+    });
   }
 
   @override
@@ -263,14 +363,23 @@ class _ChatPageState extends State<ChatPage> {
                       Icons.arrow_back_ios,
                       size: 24,
                     ),
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.blueGrey,
-                      child: SvgPicture.asset(
-                        "assets/person.svg",
-                        color: Colors.white,
-                        height: 36,
-                        width: 36,
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          swipedMessage = null;
+                        });
+                      },
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.blueGrey,
+                        child: swipedMessage != null
+                            ? Icon(Icons.cancel)
+                            : SvgPicture.asset(
+                                "assets/person.svg",
+                                color: Colors.white,
+                                height: 36,
+                                width: 36,
+                              ),
                       ),
                     )
                   ],
@@ -285,7 +394,9 @@ class _ChatPageState extends State<ChatPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "+" + widget.phoneNumber,
+                        swipedMessage != null
+                            ? 'Replying to ${swipedMessage!.type == 'text' ? swipedMessage!.value['body'] : swipedMessage!.type}'
+                            : "+" + widget.phoneNumber,
                         style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -315,7 +426,7 @@ class _ChatPageState extends State<ChatPage> {
                 child: Column(children: [
                   Expanded(
                     // height: MediaQuery.of(context).size.height - 140,
-                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    child: StreamBuilder<dynamic>(
                         stream: FirebaseFirestore.instance
                             .collection("accounts")
                             .doc(AppConfig.WABAID)
@@ -330,6 +441,8 @@ class _ChatPageState extends State<ChatPage> {
                               ConnectionState.active) {
                             if (snapshot.hasData && snapshot.data != null) {
                               for (int i = 0; i < snapshot.data!.size; i++) {
+                                print(
+                                    'data ========== ${snapshot.data!.docs[i].data()['contacts']}');
                                 messages.add(Message.fromMap(
                                     snapshot.data!.docs[i].data()));
                               }
@@ -346,6 +459,8 @@ class _ChatPageState extends State<ChatPage> {
                                   height: 70,
                                 );
                               }
+                              print(
+                                  'MESSAGE ++++++++++++++++ ${messages[index]}');
                               if (messages[index].from == AppConfig.phoneNoID) {
                                 if (messages[index].context.isNotEmpty) {
                                   return SwipeTo(
@@ -817,11 +932,34 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(
                     width: 40,
                   ),
-                  iconCreation(Icons.location_pin, Colors.teal, "Location"),
+                  iconCreation(
+                    Icons.location_pin,
+                    Colors.teal,
+                    "Location",
+                    onTap: () {
+                      checkLocationPermission();
+                    },
+                  ),
                   const SizedBox(
                     width: 40,
                   ),
-                  iconCreation(Icons.person, Colors.blue, "Contact"),
+                  iconCreation(Icons.person, Colors.blue, "Contact", onTap: () {
+                    if (swipedMessage == null) {
+                      Get.toNamed(PhoneContactsPage.id, arguments: {
+                        "fromChat": true,
+                        'to': int.parse(widget.phoneNumber),
+                        'whatsAppApi': widget.whatsApp,
+                        'swipedMessageId': null
+                      });
+                    } else {
+                      Get.toNamed(PhoneContactsPage.id, arguments: {
+                        "fromChat": true,
+                        'to': int.parse(widget.phoneNumber),
+                        'whatsAppApi': widget.whatsApp,
+                        'swipedMessageId': swipedMessage!.id
+                      });
+                    }
+                  }),
                 ],
               ),
             ],
@@ -856,7 +994,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void replyToMessage(Message message) {
-    swipedMessage = message;
+    setState(() {
+      swipedMessage = message;
+    });
   }
 
   void cancelReply() {

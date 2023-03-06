@@ -11,6 +11,9 @@ import 'package:starz/config.dart';
 import 'package:starz/models/message.dart';
 import 'package:starz/screens/video_player/video_player_screen.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../services/map_utils.dart';
 
 class ReplyMessageCardReply extends StatefulWidget {
   ReplyMessageCardReply(
@@ -181,13 +184,15 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                   ConnectionState.done) {
                                 return Padding(
                                   padding: const EdgeInsets.only(
-                                      top: 8, bottom: 8, left:10 , right: 10),
+                                      top: 8, bottom: 8, left: 10, right: 10),
                                   child: Container(
                                     width:
                                         MediaQuery.of(context).size.width * 0.5,
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: widget.myReply ? const Color(0xffa6c28f) :  Colors.grey.shade200,
+                                      color: widget.myReply
+                                          ? const Color(0xffa6c28f)
+                                          : Colors.grey.shade200,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: GestureDetector(
@@ -349,16 +354,75 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
 
                                                       return CircularProgressIndicator();
                                                     })
-                                                : Text(
-                                                    widget.message.type ==
-                                                            'text'
-                                                        ? widget.message
-                                                            .value['body']
-                                                        : 'Not supported',
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
+                                                : widget.message.type ==
+                                                        'contacts'
+                                                    ? GestureDetector(
+                                                        onTap: () {
+                                                          launch(
+                                                              "tel://${widget.message.value[0]['phones'][0]['phone']}");
+                                                        },
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            const CircleAvatar(
+                                                                child: Icon(Icons
+                                                                    .phone)),
+                                                            const SizedBox(
+                                                              width: 8.0,
+                                                            ),
+                                                            Text(widget.message
+                                                                        .value[
+                                                                    0]['name']
+                                                                ['first_name'])
+                                                          ],
+                                                        ),
+                                                      )
+                                                    : widget.message.type ==
+                                                            'location'
+                                                        ? GestureDetector(
+                                                            onTap: () {
+                                                              MapUtils.openMap(
+                                                                  widget.message
+                                                                          .value[
+                                                                      'latitude'],
+                                                                  widget.message
+                                                                          .value[
+                                                                      'longitude']);
+                                                            },
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: const [
+                                                                Icon(
+                                                                  Icons
+                                                                      .location_on,
+                                                                  size: 50.0,
+                                                                ),
+                                                                Text(
+                                                                  'Click to open in maps',
+                                                                  style: TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                )
+                                                              ],
+                                                            ))
+                                                        : Text(
+                                                            widget.message
+                                                                        .type ==
+                                                                    'text'
+                                                                ? widget.message
+                                                                        .value[
+                                                                    'body']
+                                                                : 'Not supported',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
                                   ),
                                 ],
                               ),
@@ -368,29 +432,29 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                   ],
                 ),
               ),
-
-                Positioned(
-                  bottom: 5,
-                  right: 20,
-                  child: Row(
-                    children: [
-                      Text(
-                        widget.time,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                        ),
+              Positioned(
+                bottom: 5,
+                right: 20,
+                child: Row(
+                  children: [
+                    Text(
+                      widget.time,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
                       ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      if (widget.myReply) const Icon(
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    if (widget.myReply)
+                      const Icon(
                         Icons.done_all,
                         size: 20,
                       ),
-                    ],
-                  ),
-                )
+                  ],
+                ),
+              )
             ],
           )),
     );

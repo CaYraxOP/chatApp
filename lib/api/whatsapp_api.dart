@@ -99,6 +99,37 @@ class WhatsAppApi {
     }
   }
 
+  Future messagesContacts({
+    int? to,
+    String? phoneNumber,
+    String? fullName
+  }) async {
+    var url = 'https://graph.facebook.com/v15.0/$_fromNumberId/messages';
+    Uri uri = Uri.parse(url);
+
+    Map data = {
+      "messaging_product": "whatsapp",
+      "recipient_type": "individual",
+      "to": to,
+      "type": "contacts",
+      "contacts": [
+        {
+          'name': {'first_name': fullName, 'formatted_name': fullName},
+          'phones': [{'phone': phoneNumber, 'type': 'Mobile'}],
+        }
+      ]
+    };
+
+    var body = json.encode(data);
+
+    var response = await http.post(uri, headers: _headers, body: body);
+    try {
+      return json.decode(response.body);
+    } catch (e) {
+      return response.body;
+    }
+  }
+
   /// Send the media files to the client.
   /// [to] is the phone number with country code but without the plus (+) sign.
   /// [mediaType] is the type of media such as image, document, sticker, audio or video
@@ -138,6 +169,33 @@ class WhatsAppApi {
       "messaging_product": "whatsapp",
       "to": to,
       "type": "location",
+      "location": {
+        "longitude": longitude,
+        "latitude": latitude,
+        "name": name,
+        "address": address
+      }
+    };
+
+    var body = json.encode(data);
+
+    var response = await http.post(uri, headers: _headers, body: body);
+    try {
+      return json.decode(response.body);
+    } catch (e) {
+      return response.body;
+    }
+  }
+
+  Future messagesLocationReply({to, longitude, latitude, name, address, messageId}) async {
+    var url = 'https://graph.facebook.com/v15.0/$_fromNumberId/messages';
+    Uri uri = Uri.parse(url);
+
+    Map data = {
+      "messaging_product": "whatsapp",
+      "to": to,
+      "type": "location",
+      "context": {'id': messageId},
       "location": {
         "longitude": longitude,
         "latitude": latitude,
@@ -230,6 +288,39 @@ class WhatsAppApi {
 
     var response =
         await http.post(Uri.parse(url), headers: _headers, body: body);
+    try {
+      return json.decode(response.body);
+    } catch (e) {
+      return response.body;
+    }
+  }
+
+  Future messagesContactsReply({
+    int? to,
+    String? phoneNumber,
+    String? fullName,
+    messageId
+  }) async {
+    var url = 'https://graph.facebook.com/v15.0/$_fromNumberId/messages';
+    Uri uri = Uri.parse(url);
+
+    Map data = {
+      "messaging_product": "whatsapp",
+      "recipient_type": "individual",
+      "to": to,
+      "context": {"message_id": messageId},
+      "type": "contacts",
+      "contacts": [
+        {
+          'name': {'first_name': fullName, 'formatted_name': fullName},
+          'phones': [{'phone': phoneNumber, 'type': 'Mobile'}],
+        }
+      ]
+    };
+
+    var body = json.encode(data);
+
+    var response = await http.post(uri, headers: _headers, body: body);
     try {
       return json.decode(response.body);
     } catch (e) {

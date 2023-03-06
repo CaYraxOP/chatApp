@@ -45,25 +45,27 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Widget build(BuildContext context) {
     final isMuted = controller.value.volume == 0;
 
-    return Material(
-      child: Column(children: [
-        VideoPlayerWidget(controller: controller),
-        // const SizedBox(height: 32),
-        // if (controller != null && controller.value.isInitialized)
-        //   CircleAvatar(
-        //     radius: 30,
-        //     backgroundColor: Colors.red,
-        //     child: IconButton(
-        //       icon: Icon(
-        //         isMuted ? Icons.volume_mute : Icons.volume_up,
-        //         color: Colors.white,
-        //       ),
-        //       onPressed: () {
-        //         controller.setVolume(isMuted ? 1 : 0);
-        //       },
-        //     ),
-        //   )
-      ]),
+    return SafeArea(
+      child: Material(
+        child: Column(children: [
+          VideoPlayerWidget(controller: controller),
+          // const SizedBox(height: 32),
+          // if (controller != null && controller.value.isInitialized)
+          //   CircleAvatar(
+          //     radius: 30,
+          //     backgroundColor: Colors.red,
+          //     child: IconButton(
+          //       icon: Icon(
+          //         isMuted ? Icons.volume_mute : Icons.volume_up,
+          //         color: Colors.white,
+          //       ),
+          //       onPressed: () {
+          //         controller.setVolume(isMuted ? 1 : 0);
+          //       },
+          //     ),
+          //   )
+        ]),
+      ),
     );
   }
 }

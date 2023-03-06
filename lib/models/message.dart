@@ -9,7 +9,7 @@ class Message {
   String id;
   Timestamp timestamp;
   String type;
-  Map<String, dynamic> value;
+  dynamic value;
   Message({
     required this.context,
     required this.from,
@@ -37,6 +37,17 @@ class Message {
       timestamp: map['timestamp'],
       type: map['type'] as String,
       value: map["${map['type']}"] ?? {},
+    );
+  }
+
+  factory Message.fromMapContact(Map<String, dynamic>? map) {
+    return Message(
+      context: map!["context"] ?? {},
+      from: map['from'] as String,
+      id: map['id'] as String,
+      timestamp: map['timestamp'],
+      type: map['type'] as String,
+      value: ['haha', ] ?? [],
     );
   }
 
