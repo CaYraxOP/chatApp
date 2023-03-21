@@ -27,7 +27,11 @@ class ContactsPage extends StatelessWidget {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Get.toNamed(PhoneContactsPage.id,  arguments: {"fromChat": false, 'to': null, 'whatsAppApi': null});
+            Get.toNamed(PhoneContactsPage.id, arguments: {
+              "fromChat": false,
+              'to': null,
+              'whatsAppApi': null
+            });
           },
           child: const Icon(Icons.add),
         ),
@@ -52,8 +56,10 @@ class ContactsPage extends StatelessWidget {
                   ));
                 }
 
-                return Column(
-                  children: widgets,
+                return SingleChildScrollView(
+                  child: Column(
+                    children: widgets,
+                  ),
                 );
               }
             }

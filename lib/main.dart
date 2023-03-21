@@ -6,6 +6,7 @@ import 'package:starz/firebase_options.dart';
 import 'package:get/get.dart';
 import 'package:starz/screens/auth/login/login_page.dart';
 import 'package:starz/screens/chat/chat_page.dart';
+import 'package:starz/screens/privacy&policy/privacy_and_policy.dart';
 import 'package:starz/screens/video_player/video_player_screen.dart';
 import 'package:starz/screens/home/home_screen.dart';
 import 'package:starz/screens/page_chooser/page_chooser.dart';
@@ -40,7 +41,9 @@ class MyApp extends StatelessWidget {
           GetPage(name: LoginPage.id, page: () => LoginPage()),
           GetPage(name: PageChooser.id, page: () => PageChooser()),
           GetPage(name: PhoneContactsPage.id, page: () => PhoneContactsPage()),
-          GetPage(name: VideoPlayerScreen.id, page: () => VideoPlayerScreen())
+          GetPage(name: VideoPlayerScreen.id, page: () => VideoPlayerScreen()),
+          GetPage(
+              name: PrivacyAndPolicyPage.id, page: () => PrivacyAndPolicyPage())
         ],
         initialBinding: BindingsBuilder(() {
           Get.lazyPut(() => ConctactsController(), fenix: true);
