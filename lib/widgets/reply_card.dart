@@ -96,7 +96,7 @@ class _ReplyCardState extends State<ReplyCard> {
                   FutureBuilder(
                       future: widget.whatsAppApi
                           .getMediaUrl(mediaId: widget.message.value['id']),
-                      builder: ((context, snapshot) {
+                      builder: ((context, AsyncSnapshot<dynamic> snapshot) {
                         if (snapshot.connectionState == ConnectionState.done) {
                           return Padding(
                             padding: const EdgeInsets.only(
@@ -207,7 +207,7 @@ class _ReplyCardState extends State<ReplyCard> {
                               ? FutureBuilder(
                                   future: widget.whatsAppApi.getMediaUrl(
                                       mediaId: widget.message.value['id']),
-                                  builder: (context, snapshot) {
+                                  builder: (context, AsyncSnapshot<dynamic> snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.done) {
                                       print(
@@ -234,7 +234,7 @@ class _ReplyCardState extends State<ReplyCard> {
                                   ? FutureBuilder(
                                       future: widget.whatsAppApi.getMediaUrl(
                                           mediaId: widget.message.value['id']),
-                                      builder: (context, snapshot) {
+                                      builder: (context, AsyncSnapshot<dynamic> snapshot) {
                                         if (snapshot.connectionState ==
                                             ConnectionState.done) {
                                           print(

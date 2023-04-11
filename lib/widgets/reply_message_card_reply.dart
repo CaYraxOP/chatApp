@@ -137,12 +137,13 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                     .where('id',
                                         isEqualTo: widget.message.context['id'])
                                     .get(),
-                                builder: (context, snapshot) {
+                                builder: (context, AsyncSnapshot<dynamic> snapshot) {
+                                  //print(snapshot.data);
                                   if (snapshot.hasData &&
                                       snapshot.data != null &&
                                       snapshot.data!.docs.isNotEmpty) {
                                     Message messageRepliedTo = Message.fromMap(
-                                        snapshot.data!.docs[0].data());
+                                        snapshot.data.docs[0].data());
                                     return messageRepliedTo.type == 'text'
                                         ? Text(
                                             messageRepliedTo.value['body'],
@@ -179,7 +180,7 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                         ? FutureBuilder(
                             future: widget.whatsAppApi.getMediaUrl(
                                 mediaId: widget.message.value['id']),
-                            builder: ((context, snapshot) {
+                            builder: ((context, AsyncSnapshot<dynamic> snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.done) {
                                 return Padding(
@@ -287,7 +288,7 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                                     .getMediaUrl(
                                                         mediaId: widget.message
                                                             .value['id']),
-                                                builder: (context, snapshot) {
+                                                builder: (context, AsyncSnapshot<dynamic> snapshot) {
                                                   if (snapshot
                                                           .connectionState ==
                                                       ConnectionState.done) {
@@ -303,7 +304,7 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                                               url, error) =>
                                                           Icon(Icons.error),
                                                       imageUrl:
-                                                          snapshot.data['url'],
+                                                          snapshot.data!['url'],
                                                       httpHeaders: const {
                                                         "Authorization":
                                                             "Bearer ${AppConfig.apiKey}"
@@ -321,7 +322,7 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                                                 .message
                                                                 .value['id']),
                                                     builder:
-                                                        (context, snapshot) {
+                                                        (context, AsyncSnapshot<dynamic> snapshot) {
                                                       if (snapshot
                                                               .connectionState ==
                                                           ConnectionState

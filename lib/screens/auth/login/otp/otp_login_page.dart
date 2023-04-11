@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -15,14 +16,15 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:place_picker/entities/location_result.dart';
 import 'package:place_picker/place_picker.dart';
+import 'package:sizer/sizer.dart';
 import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/models/message.dart';
 import 'package:starz/services/location.dart';
 import 'package:starz/widgets/reply_message_card_reply.dart';
 import 'package:swipe_to/swipe_to.dart';
-import '../../widgets/own_message_card.dart';
-import '../../widgets/reply_card.dart';
-import '../../config.dart';
+
+import '../../../home/home_screen.dart';
+
 
 
 

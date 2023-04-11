@@ -6,7 +6,8 @@ import 'package:starz/controllers/conctacts_controller.dart';
 import 'package:starz/firebase_options.dart';
 import 'package:get/get.dart';
 import 'package:starz/screens/auth/login/login_page.dart';
-import 'package:starz/screens/auth/otp/otp_login_page.dart';
+import 'package:starz/screens/auth/login/otp/otp_login_page.dart';
+
 import 'package:starz/screens/chat/chat_page.dart';
 import 'package:starz/screens/privacy&policy/privacy_and_policy.dart';
 import 'package:starz/screens/video_player/video_player_screen.dart';
@@ -88,3 +89,4 @@ class AuthService {
 
   // Verify the OTP code entered by the user
  
+}

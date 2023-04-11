@@ -103,7 +103,7 @@ class _OwnMessageCardState extends State<OwnMessageCard> {
                   FutureBuilder(
                       future: widget.whatsAppApi
                           .getMediaUrl(mediaId: widget.message.value['id']),
-                      builder: ((context, snapshot) {
+                      builder: ((context, AsyncSnapshot<dynamic> snapshot) {
                         if (snapshot.connectionState == ConnectionState.done) {
                           return Padding(
                             padding: const EdgeInsets.only(
@@ -219,7 +219,7 @@ class _OwnMessageCardState extends State<OwnMessageCard> {
                               ? FutureBuilder(
                                   future: widget.whatsAppApi.getMediaUrl(
                                       mediaId: widget.message.value['id']),
-                                  builder: (context, snapshot) {
+                                  builder: (context, AsyncSnapshot<dynamic> snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.done) {
                                       return CachedNetworkImage(
@@ -244,7 +244,7 @@ class _OwnMessageCardState extends State<OwnMessageCard> {
                                   ? FutureBuilder(
                                       future: widget.whatsAppApi.getMediaUrl(
                                           mediaId: widget.message.value['id']),
-                                      builder: (context, snapshot) {
+                                      builder: (context, AsyncSnapshot<dynamic> snapshot) {
                                         if (snapshot.connectionState ==
                                             ConnectionState.done) {
                                           return GestureDetector(
