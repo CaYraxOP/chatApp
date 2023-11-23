@@ -1,32 +1,29 @@
-import 'dart:convert';
-import 'dart:io';
+//import 'dart:convert';
+//import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_sound/public/flutter_sound_recorder.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import 'package:file_picker/file_picker.dart';
+//import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+//import 'package:geolocator/geolocator.dart';
+//import 'package:google_maps_flutter/google_maps_flutter.dart';
+//import 'package:http_parser/http_parser.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+//import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+//import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:place_picker/entities/location_result.dart';
-import 'package:place_picker/place_picker.dart';
+//import 'package:image_picker/image_picker.dart';
+//import 'package:intl/intl.dart';
+//import 'package:permission_handler/permission_handler.dart';
+//import 'package:place_picker/entities/location_result.dart';
+//import 'package:place_picker/place_picker.dart';
 import 'package:sizer/sizer.dart';
-import 'package:starz/api/whatsapp_api.dart';
-import 'package:starz/models/message.dart';
-import 'package:starz/services/location.dart';
-import 'package:starz/widgets/reply_message_card_reply.dart';
-import 'package:swipe_to/swipe_to.dart';
+// import 'package:starz/api/whatsapp_api.dart';
+// import 'package:starz/models/message.dart';
+// import 'package:starz/services/location.dart';
+// import 'package:starz/widgets/reply_message_card_reply.dart';
+// import 'package:swipe_to/swipe_to.dart';
 
 import '../../../home/home_screen.dart';
-
-
-
 
 class OtpLoginPage extends StatefulWidget {
   static const id = '/otp-login';

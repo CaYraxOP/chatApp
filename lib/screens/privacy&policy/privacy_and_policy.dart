@@ -123,6 +123,7 @@ STARZ Ventures does not knowingly collect any Personal Identifiable Information 
   }
 }
 
+// ignore: must_be_immutable
 class TitleText extends StatelessWidget {
   TitleText(String title, {super.key}) {
     text = title;
@@ -139,6 +140,7 @@ class TitleText extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class ParagraphText extends StatelessWidget {
   ParagraphText(String title, {super.key}) {
     text = title;

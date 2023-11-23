@@ -42,13 +42,16 @@ class Message {
 
   factory Message.fromMapContact(Map<String, dynamic>? map) {
     return Message(
-      context: map!["context"] ?? {},
-      from: map['from'] as String,
-      id: map['id'] as String,
-      timestamp: map['timestamp'],
-      type: map['type'] as String,
-      value: ['haha', ] ?? [],
-    );
+        context: map!["context"] ?? {},
+        from: map['from'] as String,
+        id: map['id'] as String,
+        timestamp: map['timestamp'],
+        type: map['type'] as String,
+        value: [
+          'haha',
+        ]
+        // ?? [],
+        );
   }
 
   String toJson() => json.encode(toMap());

@@ -1,8 +1,8 @@
-import 'dart:convert';
+//import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+//import 'package:geolocator/geolocator.dart';
+//import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -23,12 +23,13 @@ import 'package:swipe_to/swipe_to.dart';
 import '../../widgets/own_message_card.dart';
 import '../../widgets/reply_card.dart';
 import '../../config.dart';
-import '../phone_contacts/phoneContactspage.dart';
+import '../phone_contacts/phone_contacts_page.dart';
 
+// ignore: must_be_immutable
 class ChatPage extends StatefulWidget {
   ChatPage({
-    Key? key,
-  }) : super(key: key) {
+    super.key,
+  }) {
     roomId = Get.arguments['roomId'];
     phoneNumber = Get.arguments['to'];
     whatsApp = WhatsAppApi();
@@ -769,6 +770,7 @@ class _ChatPageState extends State<ChatPage> {
                     Colors.purple,
                     "Gallery",
                     onTap: () async {
+                      // ignore: invalid_use_of_visible_for_testing_member
                       PickedFile? file = await ImagePicker.platform
                           .pickImage(source: ImageSource.gallery);
 
@@ -833,6 +835,7 @@ class _ChatPageState extends State<ChatPage> {
                         };
                       }
 
+                      // ignore: unused_local_variable
                       var res = await FirebaseFirestore.instance
                           .collection("accounts")
                           .doc(AppConfig.WABAID)
@@ -850,6 +853,7 @@ class _ChatPageState extends State<ChatPage> {
                     Colors.purple,
                     "Gallery",
                     onTap: () async {
+                      // ignore: invalid_use_of_visible_for_testing_member
                       PickedFile? file = await ImagePicker.platform
                           .pickVideo(source: ImageSource.gallery);
 
@@ -1039,7 +1043,7 @@ class _ChatPageState extends State<ChatPage> {
           skinToneDialogBgColor: Colors.white,
           skinToneIndicatorColor: Colors.grey,
           enableSkinTones: true,
-          showRecentsTab: true,
+          //showRecentsTab: true,
           recentsLimit: 28,
           //noRecentsText: "No Recents",
           //noRecentsStyle: const TextStyle(fontSize: 20, color: Colors.black26),

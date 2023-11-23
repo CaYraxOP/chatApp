@@ -1,11 +1,9 @@
-import 'dart:ffi';
-
-import 'package:flutter/cupertino.dart';
+//import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
+//import 'package:flutter/src/widgets/framework.dart';
+//import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:get/get.dart';
-import 'package:starz/screens/video_player/components/VideoPlayerWidget.dart';
+import 'package:starz/screens/video_player/components/video_player_widget.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
@@ -43,6 +41,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final isMuted = controller.value.volume == 0;
 
     return SafeArea(

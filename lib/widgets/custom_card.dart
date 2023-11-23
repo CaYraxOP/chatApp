@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 
 import '../screens/chat/chat_page.dart';
 
+// ignore: must_be_immutable
 class CustomCard extends StatelessWidget {
-  CustomCard({Key? key, required this.toPhoneNumber, required this.roomId})
-      : super(key: key);
+  CustomCard({super.key, required this.toPhoneNumber, required this.roomId});
 
   String toPhoneNumber;
   String roomId;

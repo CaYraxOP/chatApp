@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
+//import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/config.dart';
 
@@ -29,6 +29,7 @@ class ConctactsController extends GetxController {
   Future<void> getInitialContacts() async {
     if (await FlutterContacts.requestPermission()) {
       contacts.value = await FlutterContacts.getContacts(withProperties: true);
+      // ignore: invalid_use_of_protected_member
       filteredContacts.value = contacts.value;
       contacts.refresh();
       filteredContacts.refresh();
@@ -36,6 +37,7 @@ class ConctactsController extends GetxController {
   }
 
   void updateFilteredContacts() {
+    // ignore: invalid_use_of_protected_member
     filteredContacts.value = contacts.value
         .where((contact) =>
             contact.name.first

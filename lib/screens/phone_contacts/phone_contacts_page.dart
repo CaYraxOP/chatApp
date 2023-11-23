@@ -1,16 +1,15 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:get/get.dart';
-import 'package:starz/api/api_service.dart';
+//import 'package:starz/api/api_service.dart';
 import 'package:starz/api/whatsapp_api.dart';
 import 'package:starz/controllers/conctacts_controller.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../config.dart';
 
+// ignore: must_be_immutable
 class PhoneContactsPage extends GetView<ConctactsController> {
   PhoneContactsPage({super.key});
 

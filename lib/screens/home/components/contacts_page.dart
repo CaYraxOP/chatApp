@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:starz/config.dart';
-import 'package:starz/screens/phone_contacts/phoneContactspage.dart';
-import 'package:whatsapp/whatsapp.dart';
+import 'package:starz/screens/phone_contacts/phone_contacts_page.dart';
+//import 'package:whatsapp/whatsapp.dart';
 import '../../../widgets/custom_card.dart';
 
+// ignore: must_be_immutable
 class ContactsPage extends StatelessWidget {
   ContactsPage({
-    Key? key,
-  }) : super(key: key) {
+    super.key,
+  }) {
     print(AppConfig.phoneNoID);
     snapshot = FirebaseFirestore.instance
         .collection("accounts")

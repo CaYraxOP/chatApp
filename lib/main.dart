@@ -13,7 +13,7 @@ import 'package:starz/screens/privacy&policy/privacy_and_policy.dart';
 import 'package:starz/screens/video_player/video_player_screen.dart';
 import 'package:starz/screens/home/home_screen.dart';
 import 'package:starz/screens/page_chooser/page_chooser.dart';
-import 'package:starz/screens/phone_contacts/phoneContactspage.dart';
+import 'package:starz/screens/phone_contacts/phone_contacts_page.dart';
 import 'screens/register/register_screen.dart';
 
 Widget _defaultHome = const RegisterScreen();
@@ -25,7 +25,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        //home: const RegisterPage(),
+        //home: const RegisterScreen(),
         getPages: [
           GetPage(name: HomeScreen.id, page: () => HomeScreen()),
           GetPage(name: RegisterScreen.id, page: () => RegisterScreen()),
@@ -47,7 +47,8 @@ class MyApp extends StatelessWidget {
           GetPage(name: PhoneContactsPage.id, page: () => PhoneContactsPage()),
           GetPage(name: VideoPlayerScreen.id, page: () => VideoPlayerScreen()),
           GetPage(
-              name: PrivacyAndPolicyPage.id, page: () => PrivacyAndPolicyPage()),
+              name: PrivacyAndPolicyPage.id,
+              page: () => PrivacyAndPolicyPage()),
           GetPage(name: OtpLoginPage.id, page: () => OtpLoginPage()),
         ],
         initialBinding: BindingsBuilder(() {
@@ -88,5 +89,24 @@ class AuthService {
   }
 
   // Verify the OTP code entered by the user
- 
 }
+
+// import "dart:html";
+
+// import 'package:flutter/material.dart';
+// import 'package:starz/screens/home/home_screen.dart';
+// import 'package:starz/screens/phone_contacts/phone_contacts_page.dart';
+// import 'package:starz/screens/register/register_screen.dart';
+
+// void main(List<String> args) {
+//   runApp(MyApp());
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(home: PhoneContactsPage());
+//   }
+// }

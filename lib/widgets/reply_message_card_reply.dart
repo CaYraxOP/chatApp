@@ -15,14 +15,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../services/map_utils.dart';
 
+// ignore: must_be_immutable
 class ReplyMessageCardReply extends StatefulWidget {
   ReplyMessageCardReply(
-      {Key? key,
+      {super.key,
       required this.message,
       required this.time,
       required this.phoneNumber,
-      required this.myReply})
-      : super(key: key) {
+      required this.myReply}) {
     whatsAppApi = WhatsAppApi()
       ..setup(
           accessToken: AppConfig.apiKey,
@@ -45,7 +45,9 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
   bool isPlaying = false;
 
   Future<void> play() async {
-    if (recordFilePath != null && File(recordFilePath).existsSync()) {
+    if (recordFilePath !=
+        //null &&
+        File(recordFilePath).existsSync()) {
       await audioPlayer.setFilePath(recordFilePath);
       await audioPlayer.play();
     }
@@ -137,7 +139,8 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                     .where('id',
                                         isEqualTo: widget.message.context['id'])
                                     .get(),
-                                builder: (context, AsyncSnapshot<dynamic> snapshot) {
+                                builder:
+                                    (context, AsyncSnapshot<dynamic> snapshot) {
                                   //print(snapshot.data);
                                   if (snapshot.hasData &&
                                       snapshot.data != null &&
@@ -180,7 +183,8 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                         ? FutureBuilder(
                             future: widget.whatsAppApi.getMediaUrl(
                                 mediaId: widget.message.value['id']),
-                            builder: ((context, AsyncSnapshot<dynamic> snapshot) {
+                            builder:
+                                ((context, AsyncSnapshot<dynamic> snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.done) {
                                 return Padding(
@@ -288,7 +292,9 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                                     .getMediaUrl(
                                                         mediaId: widget.message
                                                             .value['id']),
-                                                builder: (context, AsyncSnapshot<dynamic> snapshot) {
+                                                builder: (context,
+                                                    AsyncSnapshot<dynamic>
+                                                        snapshot) {
                                                   if (snapshot
                                                           .connectionState ==
                                                       ConnectionState.done) {
@@ -321,8 +327,9 @@ class _ReplyMessageCardReplyState extends State<ReplyMessageCardReply> {
                                                             mediaId: widget
                                                                 .message
                                                                 .value['id']),
-                                                    builder:
-                                                        (context, AsyncSnapshot<dynamic> snapshot) {
+                                                    builder: (context,
+                                                        AsyncSnapshot<dynamic>
+                                                            snapshot) {
                                                       if (snapshot
                                                               .connectionState ==
                                                           ConnectionState

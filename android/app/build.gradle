@@ -63,11 +63,12 @@ android {
        release {
            keyAlias keystoreProperties['RkeyAlias']
            keyPassword keystoreProperties['RkeyPassword']
-           storeFile keystoreProperties['RstoreFile'] ? file(keystoreProperties['RstoreFile']) : null
+           //storeFile keystoreProperties['RstoreFile'] ? file(keystoreProperties['RstoreFile']) : null
            storePassword keystoreProperties['RstorePassword']
        }
 
        debug {
+           //storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
            keyAlias keystoreProperties['DkeyAlias']
            keyPassword keystoreProperties['DkeyPassword']
            storeFile keystoreProperties['DstoreFile'] ? file(keystoreProperties['DstoreFile']) : null
